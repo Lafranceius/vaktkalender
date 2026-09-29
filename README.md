@@ -1,5 +1,8 @@
 # Vaktkalender
 
+Det er ingen kalenderintegrasjon på internettside, så lagde en lokal playwright scraping som henter inn alle vaktene og legger inn i personlig kalender. Hoster nettside for kollegaer på egen Raspberry Pi, slik at de kan logge inn og få tilgang uten noe git eller egen kodekalenderen alltid oppdaterer fra RBU for hver kollega
+
+
 Puts Red Bull Student Marketeer shifts from RBU (Red Bull's internal planning tool) into each colleague's own Google or Apple calendar. It updates automatically, and colleagues set it up with one tap.
 
 A colleague opens the site, logs in with a one-time code sent to their email, and types their RBU code (first letter of first name + surname). They see a preview of their upcoming shifts, then press **Legg til i Google Kalender** or **Legg til i Apple Kalender**. From then on, new, changed and cancelled shifts show up in their calendar without them doing anything.
