@@ -1,0 +1,292 @@
+/* Neobrutalism: thick ink borders, hard shadows, loud colour on a warm surface.
+   Tokens follow .claude/skills/neobrutalism; the extra accents make it vibrant. */
+:root {
+  color-scheme: light;
+
+  --primary: #FDC800;
+  --secondary: #432DD7;
+  --success: #16A34A;
+  --warning: #D97706;
+  --danger: #DC2626;
+  --surface: #FBFBF9;
+  --card: #FFFFFF;
+  --ink: #1C293C;
+  --muted: #4A5568;
+
+  /* vibrant accents, cycled with .c0–.c5 */
+  --pink: #FF5CA8;
+  --cyan: #3DD6F5;
+  --lime: #7BE35A;
+  --orange: #FF8A1F;
+  --violet: #A78BFA;
+  --red: #E4002B;
+
+  --border: 3px solid var(--ink);
+  --shadow-sm: 3px 3px 0 var(--ink);
+  --shadow: 5px 5px 0 var(--ink);
+  --shadow-lg: 8px 8px 0 var(--ink);
+  --radius: 8px;
+
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px;
+  --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--surface); }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--surface);
+  color: var(--ink);
+  font: 500 17px/1.5 var(--font);
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* ---------- big calendar in the background ---------- */
+.bg-cal {
+  position: fixed;
+  z-index: 0;
+  top: 50%;
+  left: 50%;
+  width: max(980px, 115vw, 135vh);
+  transform: translate(-50%, -50%) rotate(-6deg);
+  pointer-events: none;
+  user-select: none;
+}
+.bg-cal__title {
+  font: 900 clamp(64px, 12vw, 150px)/0.9 var(--font);
+  text-transform: uppercase;
+  letter-spacing: -0.04em;
+  color: var(--secondary);
+  -webkit-text-stroke: 3px var(--ink);
+  margin: 0 0 var(--s5) var(--s2);
+}
+.bg-cal__title, .bg-cal__wd, .bg-cal__cell { opacity: 0.6; }
+.bg-cal__grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+}
+.bg-cal__wd {
+  font: 800 22px var(--mono);
+  text-transform: uppercase;
+  padding: 0 var(--s2);
+}
+.bg-cal__cell {
+  position: relative;
+  aspect-ratio: 1.25;
+  background: var(--card);
+  border: 4px solid var(--ink);
+  border-radius: var(--radius);
+  box-shadow: 6px 6px 0 var(--ink);
+  overflow: hidden;
+}
+.bg-cal__cell.is-empty { background: transparent; border-style: dashed; box-shadow: none; }
+.bg-cal__num, .bg-cal__tag { z-index: 1; }
+.bg-cal__num { position: absolute; top: 8px; left: 12px; font: 800 30px var(--mono); }
+.bg-cal__tag {
+  position: absolute; bottom: 10px; right: 10px;
+  font: 800 14px var(--mono); letter-spacing: 0.08em;
+  background: var(--ink); color: var(--card); padding: 2px 8px; border-radius: 4px;
+}
+.bg-cal__cell.is-today { --fill: var(--red); background: var(--fill); color: var(--card); }
+
+/* painting: JS marks the days the can will fill in; they start blank */
+.bg-cal .bg-cal__cell.js-paint { background: var(--card); color: var(--ink); }
+.bg-cal__cell.js-paint::before {
+  content: ""; position: absolute; inset: 0; background: var(--fill);
+  transform: scaleX(0); transform-origin: left center; transition: transform 0.85s steps(6);
+}
+.bg-cal__cell.js-paint.is-painted::before { transform: scaleX(1); }
+.bg-cal__cell.is-today.js-paint.is-painted { color: var(--card); }
+.bg-cal__cell.js-paint .bg-cal__tag { opacity: 0; transition: opacity 0.2s 0.7s; }
+.bg-cal__cell.js-paint.is-painted .bg-cal__tag { opacity: 1; }
+
+/* the painter: a living can with a brush */
+.painter {
+  position: absolute; top: 0; left: 0; z-index: 2;
+  width: calc((100% - 60px) / 7 * 0.78); aspect-ratio: 1;
+  transition: transform 1.1s linear;
+  filter: drop-shadow(4px 4px 0 var(--ink));
+}
+.painter__flip, .painter__art { display: block; width: 100%; height: 100%; }
+.painter.is-left .painter__flip { transform: scaleX(-1); }
+.painter .paint { fill: var(--paint, var(--pink)); }
+.painter .f2 { visibility: hidden; }
+.painter.is-painting .f1 { animation: brush-a 0.3s steps(1) infinite; }
+.painter.is-painting .f2 { animation: brush-b 0.3s steps(1) infinite; }
+.painter.is-walking .painter__art { animation: hop 0.28s steps(1) infinite; }
+@keyframes brush-a { 50% { visibility: hidden; } }
+@keyframes brush-b { 50% { visibility: visible; } }
+@keyframes hop { 50% { transform: translateY(-7%); } }
+.bg-cal__cell.is-today .bg-cal__tag { background: var(--card); color: var(--red); }
+
+/* ---------- layout ---------- */
+.top, main, footer { position: relative; z-index: 1; }
+.top { max-width: 680px; margin: 0 auto; padding: var(--s4) var(--s4) 0; }
+.brand {
+  display: inline-flex; align-items: center; gap: var(--s3);
+  background: var(--card); border: var(--border); border-radius: var(--radius);
+  box-shadow: var(--shadow-sm); padding: 6px 14px 6px 8px;
+  color: var(--ink); text-decoration: none;
+}
+.brand__art { width: 40px; height: 40px; image-rendering: pixelated; }
+.brand__name { font: 900 20px var(--font); letter-spacing: -0.02em; }
+main { max-width: 680px; margin: 0 auto; padding: var(--s4) var(--s4) var(--s2); }
+footer {
+  width: fit-content; max-width: calc(100% - 2 * var(--s4)); margin: var(--s2) auto var(--s6);
+  text-align: center; font: 600 13px var(--mono);
+  background: var(--card); border: 2px solid var(--ink); border-radius: var(--radius); padding: 6px 12px;
+}
+
+/* ---------- type ---------- */
+h1 { font: 900 clamp(30px, 7vw, 42px)/1.05 var(--font); letter-spacing: -0.03em; margin: 0 0 var(--s3); }
+h2 {
+  font: 800 21px/1.2 var(--font); letter-spacing: -0.01em;
+  margin: 0 0 var(--s4); display: flex; align-items: center; gap: var(--s3);
+}
+h3 { font: 800 17px var(--font); margin: 0 0 var(--s2); display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; }
+p { margin: 0 0 var(--s3); }
+.lead { font-size: 19px; font-weight: 600; margin: 0; }
+.label { font: 700 13px var(--mono); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--s2); }
+.muted { color: var(--muted); }
+.small { font-size: 14px; }
+.center { text-align: center; }
+a { color: var(--secondary); font-weight: 700; text-underline-offset: 3px; text-decoration-thickness: 2px; }
+.back {
+  display: inline-block; background: var(--card); color: var(--ink); text-decoration: none;
+  border: 2px solid var(--ink); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: 4px 12px;
+}
+code {
+  font: 700 0.95em var(--mono); background: var(--primary);
+  border: 2px solid var(--ink); border-radius: 4px; padding: 1px 6px;
+}
+strong { font-weight: 800; }
+
+/* ---------- surfaces ---------- */
+.hero, .card {
+  background: var(--card); border: var(--border); border-radius: var(--radius);
+  box-shadow: var(--shadow-lg); padding: var(--s5); margin: 0 0 var(--s5);
+}
+.hero { background: var(--cyan); text-align: center; }
+.hero--compact { padding: var(--s4) var(--s5); }
+.hero--compact h1 { margin: 0; }
+.hero__art {
+  width: min(300px, 80%); height: auto; image-rendering: pixelated;
+  margin: 0 auto var(--s4); display: block;
+  filter: drop-shadow(4px 4px 0 var(--ink));
+}
+.card--quiet { box-shadow: var(--shadow); padding: var(--s4) var(--s5); }
+
+.step {
+  display: inline-grid; place-items: center; flex: none;
+  width: 36px; height: 36px;
+  border: var(--border); border-radius: 6px; box-shadow: var(--shadow-sm);
+  font: 800 17px var(--mono);
+}
+.chip {
+  display: inline-block; font: 700 12px/1.6 var(--mono); text-transform: uppercase; letter-spacing: 0.05em;
+  background: var(--cyan); border: 2px solid var(--ink); border-radius: 4px; padding: 0 8px;
+  vertical-align: middle;
+}
+.option { border-top: 3px dashed var(--ink); padding-top: var(--s4); margin-top: var(--s4); }
+.who { font: 800 21px/1.3 var(--font); display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; }
+.example { font-weight: 600; }
+
+/* ---------- messages ---------- */
+.notice, .alert, .ok {
+  border: var(--border); border-radius: var(--radius); padding: var(--s3) var(--s4);
+  font-weight: 700; box-shadow: var(--shadow-sm);
+}
+.notice { background: var(--cyan); }
+.alert { background: var(--pink); }
+.ok { background: var(--lime); }
+.error-text { color: var(--danger); font-weight: 700; }
+
+/* ---------- forms & buttons ---------- */
+label { display: block; font: 700 13px var(--mono); text-transform: uppercase; letter-spacing: 0.08em; margin: var(--s4) 0 var(--s2); }
+input {
+  width: 100%; font: 700 18px var(--mono); color: var(--ink);
+  padding: 14px 16px; background: var(--surface);
+  border: var(--border); border-radius: var(--radius); box-shadow: inset 3px 3px 0 rgba(28, 41, 60, 0.12);
+}
+input::placeholder { color: #9AA3B2; }
+input:focus-visible { outline: 3px solid var(--secondary); outline-offset: 3px; background: #FFFBE6; }
+
+.btn, button {
+  display: block; width: 100%; margin: var(--s4) 0 var(--s2);
+  padding: 15px 20px; cursor: pointer;
+  font: 800 18px var(--font); letter-spacing: -0.01em; text-align: center; text-decoration: none;
+  color: var(--ink); background: var(--primary);
+  border: var(--border); border-radius: var(--radius); box-shadow: var(--shadow);
+  transition: transform 80ms ease, box-shadow 80ms ease;
+}
+.btn:hover, button:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--ink); }
+.btn:active, button:active { transform: translate(4px, 4px); box-shadow: 1px 1px 0 var(--ink); }
+.btn:focus-visible, button:focus-visible, a:focus-visible, summary:focus-visible {
+  outline: 3px solid var(--secondary); outline-offset: 4px;
+}
+.btn--primary { background: var(--primary); }
+.btn--secondary { background: var(--secondary); color: #FFFFFF; }
+.btn--danger { background: var(--card); color: var(--danger); border-color: var(--danger); box-shadow: 5px 5px 0 var(--danger); }
+.btn--danger:hover { box-shadow: 7px 7px 0 var(--danger); }
+.btn--small { display: inline-block; width: auto; margin: 0; padding: 6px 12px; font-size: 14px; box-shadow: var(--shadow-sm); }
+
+details summary { cursor: pointer; font-weight: 800; list-style: none; }
+details summary::before { content: "▸ "; font-family: var(--mono); }
+details[open] summary::before { content: "▾ "; }
+details summary::-webkit-details-marker { display: none; }
+details[open] summary { margin-bottom: var(--s3); }
+
+/* ---------- shift tickets ---------- */
+.tickets { list-style: none; padding: 0; margin: var(--s2) 0 var(--s4); display: grid; gap: var(--s3); }
+.ticket {
+  display: flex; align-items: stretch;
+  border: var(--border); border-radius: var(--radius); background: var(--card);
+  box-shadow: var(--shadow-sm); overflow: hidden;
+}
+.ticket__date {
+  flex: none; width: 76px; display: grid; place-items: center; align-content: center;
+  border-right: var(--border); padding: var(--s2) 0; font-family: var(--mono); line-height: 1.05;
+}
+.ticket__wd, .ticket__mon { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; }
+.ticket__day { font-size: 28px; font-weight: 800; }
+.ticket__body { padding: var(--s3) var(--s4); display: grid; align-content: center; gap: 2px; min-width: 0; }
+.ticket__title { font-weight: 800; overflow-wrap: anywhere; }
+.ticket__time { font: 600 14px var(--mono); color: var(--muted); }
+
+/* ---------- admin ---------- */
+.table-wrap { overflow-x: auto; border: var(--border); border-radius: var(--radius); margin-top: var(--s4); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--card); }
+th { font: 800 12px var(--mono); text-transform: uppercase; letter-spacing: 0.06em; background: var(--primary); }
+th, td { text-align: left; padding: 10px; border-bottom: 2px solid var(--ink); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+.plain { padding-left: 1.1em; margin: 0; }
+.plain li { margin: 4px 0; }
+.steps { padding-left: 1.3em; margin: 0; }
+.steps li { margin: var(--s2) 0; }
+
+@media (max-width: 480px) {
+  .hero, .card { padding: var(--s4); box-shadow: var(--shadow); }
+  .bg-cal__title, .bg-cal__wd, .bg-cal__cell { opacity: 0.5; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn, button { transition: none; }
+}
+
+/* ---------- colour helpers (last, so they win over surface backgrounds) ---------- */
+.c0 { background: var(--primary); }
+.bg-cal__cell.c0 { --fill: var(--primary); background: var(--fill); }
+.c1 { background: var(--pink); }
+.bg-cal__cell.c1 { --fill: var(--pink); background: var(--fill); }
+.c2 { background: var(--cyan); }
+.bg-cal__cell.c2 { --fill: var(--cyan); background: var(--fill); }
+.c3 { background: var(--lime); }
+.bg-cal__cell.c3 { --fill: var(--lime); background: var(--fill); }
+.c4 { background: var(--orange); }
+.bg-cal__cell.c4 { --fill: var(--orange); background: var(--fill); }
+.c5 { background: var(--violet); }
+.bg-cal__cell.c5 { --fill: var(--violet); background: var(--fill); }

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% from "_shifts.html" import shift_list %}
+{% block content %}
+<section class="hero">
+  <img src="{{ static('bulls.svg') }}" alt="" class="hero__art" width="300" height="108">
+  <h1>Hei{% if employee %} {{ employee.first_name }}{% endif %}!</h1>
+  <p class="lead">Legg vaktene inn i kalenderen du bruker. Det gjør du bare én gang.</p>
+</section>
+
+<section class="card">
+  <h2><span class="step c2">2</span> Velg kalender</h2>
+
+  {% if google_enabled %}
+  <div class="option">
+    <h3>Google Kalender <span class="chip">Android · PC</span></h3>
+    {% if google_url %}
+      <p class="ok">✓ «Red Bull-vakter» er laget til deg.</p>
+      <p>Ser du den ikke i Google Kalender? Trykk her og velg <strong>Legg til</strong>:</p>
+      <a class="btn btn--primary" href="{{ google_url }}" target="_blank" rel="noopener">Åpne i Google Kalender</a>
+    {% else %}
+      <form method="post" action="/google">
+        <button type="submit" class="btn btn--primary">Legg til i Google Kalender</button>
+      </form>
+      <p class="muted">Google spør «Legg til kalender?» – trykk <strong>Legg til</strong>.
+        Du får også en e-post fra Google med samme knapp.</p>
+    {% endif %}
+    <p class="muted small">Fungerer det ikke på mobilen? Åpne siden på en PC, eller trykk på lenken i e-posten fra Google.</p>
+  </div>
+  {% endif %}
+
+  <div class="option">
+    <h3>Apple Kalender <span class="chip">iPhone · Mac</span></h3>
+    {% if other_browser %}
+      <p class="alert">Du har åpnet siden i {{ other_browser }}, og der virker ikke Apple-knappen.
+        Følg stegene under, eller åpne siden i Safari.</p>
+    {% endif %}
+    <a class="btn btn--secondary" href="{{ webcal_url }}">Legg til i Apple Kalender</a>
+    <p class="muted">iPhonen spør om du vil abonnere – trykk <strong>Abonner</strong>, så <strong>Legg til</strong>.</p>
+    <details{% if other_browser %} open{% endif %}>
+      <summary>Skjer det ingenting når du trykker?</summary>
+      <ol class="steps">
+        <li><button type="button" class="btn--small" data-copy="{{ feed_url }}"
+              onclick="navigator.clipboard.writeText(this.dataset.copy).then(() => this.textContent = 'Kopiert ✓')">Kopier kalenderlenken</button></li>
+        <li>Åpne Kalender-appen og trykk <strong>Kalendere</strong> nederst.</li>
+        <li>Trykk <strong>Legg til kalender</strong> → <strong>Legg til abonnementskalender</strong>.</li>
+        <li>Lim inn lenken, trykk <strong>Finn</strong>, så <strong>Legg til</strong>.</li>
+      </ol>
+    </details>
+  </div>
+
+  <details class="option">
+    <summary>Outlook eller en annen kalender</summary>
+    <p>Legg til en kalender «fra Internett / URL» og lim inn denne lenken. Ikke del den med andre.</p>
+    <input readonly value="{{ feed_url }}" onclick="this.select()" aria-label="Kalenderlenke">
+  </details>
+</section>
+
+<section class="card">
+  <h2><span class="step c3">★</span> Dine neste vakter</h2>
+  {% if shifts %}
+    {{ shift_list(shifts) }}
+  {% else %}
+    <p class="muted">Ingen kommende vakter akkurat nå.</p>
+  {% endif %}
+  <p class="muted small">
+    Oppdateres automatisk hver morgen.
+    Sist hentet fra RBU: {{ local_time(last_run.finished_at if last_run else None) }}.
+  </p>
+</section>
+
+<details class="card card--quiet">
+  <summary>Koble fra</summary>
+  <p>Stopper oppdateringene og sletter «Red Bull-vakter»-kalenderen fra Google. Apple-abonnementet må du fjerne selv på telefonen.</p>
+  <form method="post" action="/koble-fra"><button type="submit" class="btn btn--danger">Koble fra</button></form>
+</details>
+{% endblock %}
+{% block footer %}
+<footer>Innlogget som {{ email }} · kode {{ member.code }}{% if is_admin %} · <a href="/admin">Admin</a>{% endif %}</footer>
+{% endblock %}

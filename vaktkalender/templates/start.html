@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <img src="{{ static('bulls.svg') }}" alt="" class="hero__art" width="300" height="108">
+  <h1>Vaktene dine rett i kalenderen</h1>
+  <p class="lead">Koble deg til én gang, så dukker nye vakter fra RBU opp av seg selv.</p>
+</section>
+
+{% if not has_data %}
+  <p class="notice">Vaktene er ikke hentet fra RBU ennå. Prøv igjen litt senere.</p>
+{% endif %}
+
+<section class="card">
+  <h2><span class="step c1">1</span> Skriv koden din</h2>
+  <p>Koden er <strong>første bokstav i fornavnet + hele etternavnet</strong>, uten mellomrom.</p>
+  <p class="example"><span class="chip">Ola Nordmann</span> → <code>onordmann</code></p>
+
+  {% if not_found %}
+    <p class="alert">Fant ingen med koden «{{ code }}». Sjekk skrivemåten og prøv igjen.</p>
+  {% elif taken %}
+    <p class="alert">Koden «{{ code }}» er allerede koblet til en annen e-post. Ta kontakt med {{ contact }}.</p>
+  {% elif code %}
+    <p class="alert">Fant flere med koden «{{ code }}». Ta kontakt med {{ contact }}.</p>
+  {% endif %}
+
+  <form method="post" action="/kode">
+    <label for="code">Koden din</label>
+    <input id="code" name="code" value="{{ code or '' }}" autocomplete="off" autocapitalize="none"
+           spellcheck="false" placeholder="onordmann" required>
+    <button type="submit" class="btn btn--primary">Finn vaktene mine →</button>
+  </form>
+</section>
+{% endblock %}
+{% block footer %}<footer>Innlogget som {{ email }}</footer>{% endblock %}

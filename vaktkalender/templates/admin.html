@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Admin · Vaktkalender{% endblock %}
+{% block content %}
+<section class="hero hero--compact c5">
+  <h1>Admin</h1>
+</section>
+<p><a class="back" href="/">← Til forsiden</a></p>
+
+<section class="card">
+  <h2><span class="step c1">↻</span> RBU-henting</h2>
+  {% if started %}<p class="ok">Henting startet. Last siden på nytt om et par minutter.</p>{% endif %}
+  <form method="post" action="/admin/scrape"><button type="submit" class="btn btn--primary">Hent fra RBU nå</button></form>
+  <p class="small">RBU-innloggingen går ut: <strong>{{ local_time(session_expires) if session_expires else "ukjent" }}</strong></p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Startet</th><th>Status</th><th>Melding</th></tr></thead>
+    <tbody>
+    {% for r in runs %}
+      <tr>
+        <td>{{ local_time(r.started_at) }}</td>
+        <td>{% if r.ok is none %}⏳ kjører{% elif r.ok %}✅{% else %}❌{% endif %}</td>
+        <td>{{ r.message or "" }}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="3" class="muted">Ingen kjøringer ennå.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+</section>
+
+<section class="card">
+  <h2><span class="step c3">✓</span> Tilkoblede kolleger ({{ rows|length }})</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Navn</th><th>E-post</th><th>Kommende</th><th>Google</th><th>Sist synket</th><th>Apple/lenke hentet</th><th></th></tr></thead>
+    <tbody>
+    {% for m, e, count in rows %}
+      <tr>
+        <td>{{ e.full_name if e else "?" }}<br><span class="muted small">{{ m.code }}{% if e %} · {{ e.team_name }}{% endif %}</span></td>
+        <td class="small">{{ m.email }}</td>
+        <td>{{ count }}</td>
+        <td>{% if m.google_calendar_id %}✓{% else %}–{% endif %}</td>
+        <td class="small">
+          {{ local_time(m.last_sync_at) if m.google_calendar_id else "–" }}
+          {% if m.sync_error %}<br><span class="error-text">{{ m.sync_error }}</span>{% endif %}
+        </td>
+        <td class="small" title="{{ m.feed_client or '' }}">
+          {{ local_time(m.feed_fetched_at) if m.feed_fetched_at else "–" }}
+          {% if m.feed_client %}<br><span class="muted">{{ feed_client(m.feed_client) }}</span>{% endif %}
+        </td>
+        <td>
+          <form method="post" action="/admin/fjern">
+            <input type="hidden" name="target" value="{{ m.email }}">
+            <button type="submit" class="btn btn--danger btn--small">Fjern</button>
+          </form>
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="7" class="muted">Ingen har koblet seg til ennå.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+</section>
+
+<section class="card">
+  <h2><span class="step c4">?</span> I RBU, men ikke tilkoblet ({{ unclaimed|length }})</h2>
+  <ul class="plain">
+    {% for e in unclaimed %}<li>{{ e.full_name }} <span class="muted">· {{ e.code }} · {{ e.team_name }}</span></li>{% endfor %}
+  </ul>
+</section>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% macro shift_list(shifts) %}
+<ul class="tickets">
+  {% for s in shifts %}
+    {% set d = shift_date(s) %}
+    <li class="ticket">
+      <div class="ticket__date c{{ loop.index0 % 6 }}">
+        <span class="ticket__wd">{{ d.wd }}</span>
+        <span class="ticket__day">{{ d.day }}</span>
+        <span class="ticket__mon">{{ d.mon }}</span>
+      </div>
+      <div class="ticket__body">
+        <span class="ticket__title">{{ s.summary }}</span>
+        <span class="ticket__time">{{ d.time }} · {{ s.team_name }}</span>
+      </div>
+    </li>
+  {% endfor %}
+</ul>
+{% endmacro %}

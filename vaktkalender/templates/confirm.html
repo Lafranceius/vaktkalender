@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% from "_shifts.html" import shift_list %}
+{% block content %}
+<section class="hero hero--compact c4">
+  <h1>Er dette deg?</h1>
+</section>
+<section class="card">
+  <p class="who">{{ employee.full_name }} <span class="chip">{{ employee.team_name }}</span></p>
+  {% if shifts %}
+    <p class="label">Dine neste vakter</p>
+    {{ shift_list(shifts) }}
+  {% else %}
+    <p class="muted">Ingen kommende vakter akkurat nå. De dukker opp når neste måned publiseres i RBU.</p>
+  {% endif %}
+  <form method="post" action="/koble">
+    <input type="hidden" name="code" value="{{ employee.code }}">
+    <button type="submit" class="btn btn--primary">Ja, det er meg</button>
+  </form>
+  <p class="center"><a href="/">Nei, prøv en annen kode</a></p>
+</section>
+{% endblock %}
