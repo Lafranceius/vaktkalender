@@ -1,0 +1,10 @@
+[Unit]
+Description=Vaktkalender: daglig henting kl. 06
+
+[Timer]
+OnCalendar=*-*-* 06:00:00 Europe/Oslo
+Persistent=true
+RandomizedDelaySec=5min
+
+[Install]
+WantedBy=timers.target

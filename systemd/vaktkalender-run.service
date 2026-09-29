@@ -1,0 +1,10 @@
+[Unit]
+Description=Vaktkalender: hent vakter fra RBU og synk kalendere
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/vaktkalender/app
+EnvironmentFile=%h/.config/vaktkalender/config.env
+ExecStart=%h/vaktkalender/.venv/bin/python -m vaktkalender run
+TimeoutStartSec=15min

@@ -1,0 +1,13 @@
+[Unit]
+Description=Vaktkalender web (RBU-vakter til kalender)
+After=network-online.target
+
+[Service]
+WorkingDirectory=%h/vaktkalender/app
+EnvironmentFile=%h/.config/vaktkalender/config.env
+ExecStart=%h/vaktkalender/.venv/bin/uvicorn vaktkalender.web:create_app --factory --host 127.0.0.1 --port 8090 --no-server-header
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
