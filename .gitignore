@@ -1,0 +1,20 @@
+# Secrets and personal data — never commit
+*.env
+.env*
+!config.example.env
+storage_state*.json
+*service-account*.json
+credentials/
+*.db
+*.db-*
+*.sqlite3
+
+# Local tooling
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store
+
+# Claude Code tooling
+.claude/
